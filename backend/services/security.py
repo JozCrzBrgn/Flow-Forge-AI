@@ -40,9 +40,10 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     )
 
 
-def decode_access_token(token: str = Depends(oauth2_scheme)):
+def decode_access_token(token: str = Depends(oauth2_scheme)) -> dict:
     """
-    Decodes a JWT token and returns the username if it is valid. Otherwise, it throws an authentication exception.
+    Decodes a JWT token and returns the full JWT payload dict if it is valid.
+    Otherwise, it throws an authentication exception.
     Args:
         token (str): JWT token to be decoded (obtained from the Authorization header)
     """
@@ -58,7 +59,7 @@ def decode_access_token(token: str = Depends(oauth2_scheme)):
         username = payload.get("sub")
         if username is None:
             raise credentials_exception
-        return username
+        return payload
     except JWTError:
         raise credentials_exception
 

@@ -36,7 +36,7 @@ async def login(request: Request, form_data: Annotated[OAuth2PasswordRequestForm
             status_code=400,
             detail="Incorrect username or password.",
         )
-    access_token = create_access_token(data={"sub": user["username"]})
+    access_token = create_access_token(data={"sub": str(user["id"]), "username": user["username"]})
     return TokenResponse(access_token=access_token, token_type="bearer")
 
 
@@ -59,9 +59,9 @@ async def login(request: Request, form_data: Annotated[OAuth2PasswordRequestForm
 )
 async def register(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
-    current_username: str = Depends(decode_access_token)
+    current_user: dict = Depends(decode_access_token)
 ):
-    if current_username != "admin":
+    if current_user.get("username") != "admin":
         raise HTTPException(
             status_code=403,
             detail="Only admin can register new users.",
@@ -72,5 +72,5 @@ async def register(
             status_code=400,
             detail="Incorrect username or password.",
         )
-    access_token = create_access_token(data={"sub": user["username"]})
+    access_token = create_access_token(data={"sub": str(user["id"]), "username": user["username"]})
     return TokenResponse(access_token=access_token, token_type="bearer")

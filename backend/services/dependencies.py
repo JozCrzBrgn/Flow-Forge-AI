@@ -4,13 +4,14 @@ from .security import decode_access_token
 
 
 def get_current_user(
-    request: Request, username: str = Depends(decode_access_token)
-) -> str:
+    request: Request, payload: dict = Depends(decode_access_token)
+) -> dict:
     """
-    Dependency to obtain the currently authenticated user
+    Dependency to obtain the currently authenticated user.
+    Returns the full JWT payload so callers can access any claim (e.g. payload["sub"]).
     """
 
     # guardar usuario en request.state para rate limiter
-    request.state.user = username
+    request.state.user = payload.get("sub")
 
-    return username
+    return payload
