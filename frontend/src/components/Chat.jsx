@@ -25,7 +25,7 @@ export default function Chat({ workflow, setWorkflow, token, onLogout }) {
         setIsLoading(true);
 
         try {
-            const API_URL = import.meta.env.VITE_API_URL || "";
+            const API_URL = import.meta.env.VITE_API_URL || "https://noble-vibrancy-production-25bb.up.railway.app";
             const res = await axios.post(`${API_URL}/v2/chat`, {
                 message: userMsg,
                 workflow: workflow,
