@@ -62,7 +62,7 @@ export default function Flow({ workflow }) {
     nodes = getLayoutedElements(nodes, edges);
 
     return (
-        <div style={{ width: "100%", height: "100%" }}>
+        <div style={{ width: "100%", height: "100%", backgroundColor: "#87918cff" }}>
             <ReactFlow nodes={nodes} edges={edges} fitView>
                 <Background />
                 <Controls />

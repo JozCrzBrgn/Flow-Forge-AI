@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import axios from "axios";
-import { Send, Bot, User, Loader2, Zap } from "lucide-react";
+import { Send, Bot, User, Loader2, Zap, LogOut } from "lucide-react";
 
-export default function Chat({ workflow, setWorkflow }) {
+export default function Chat({ workflow, setWorkflow, token, onLogout }) {
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState("");
     const [isLoading, setIsLoading] = useState(false);
@@ -25,9 +25,13 @@ export default function Chat({ workflow, setWorkflow }) {
         setIsLoading(true);
 
         try {
-            const res = await axios.post("http://localhost:10000/chat", {
+            const res = await axios.post(`${import.meta.env.VITE_API_URL}/v2/chat`, {
                 message: userMsg,
                 workflow: workflow,
+            }, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
             });
 
             if (res.data.workflow) {
@@ -42,13 +46,17 @@ export default function Chat({ workflow, setWorkflow }) {
                 ]);
             }
         } catch (err) {
-            setMessages((prev) => [
-                ...prev,
-                {
-                    role: "assistant",
-                    content: "❌ Error de conexión. Intenta nuevamente.",
-                },
-            ]);
+            if (err.response?.status === 401) {
+                onLogout();
+            } else {
+                setMessages((prev) => [
+                    ...prev,
+                    {
+                        role: "assistant",
+                        content: "❌ Error de conexión. Intenta nuevamente.",
+                    },
+                ]);
+            }
         } finally {
             setIsLoading(false);
         }
@@ -65,7 +73,7 @@ export default function Chat({ workflow, setWorkflow }) {
         <div className="relative min-h-screen flex items-center justify-center p-6 bg-[#050507] font-sans overflow-hidden">
 
             {/* Glow background */}
-            <div className="absolute inset-0 -z-10 blur-3xl opacity-20 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"></div>
+            <div className="absolute inset-0 -z-10 blur-3xl opacity-20 bg-gradient-to-r from-[#3657E2] to-[#1CCDEF]"></div>
 
             {/* Container */}
             <div className="w-full max-w-4xl h-[85vh] flex flex-col rounded-2xl bg-white/[0.04] backdrop-blur-2xl border border-white/10 shadow-[0_20px_80px_rgba(0,0,0,0.6)] overflow-hidden">
@@ -73,7 +81,7 @@ export default function Chat({ workflow, setWorkflow }) {
                 {/* Header */}
                 <div className="px-6 py-4 border-b border-white/10 bg-black/30 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-lg shadow-indigo-900/40">
+                        <div className="p-2 rounded-xl bg-gradient-to-br from-[#3657E2] to-[#1CCDEF] text-white shadow-lg shadow-[#3657E2]/40">
                             <Zap size={18} />
                         </div>
                         <div>
@@ -86,9 +94,18 @@ export default function Chat({ workflow, setWorkflow }) {
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-2 text-xs px-3 py-1 bg-white/5 border border-white/10 rounded-full text-gray-400">
-                        <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
-                        Online
+                    <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2 text-xs px-3 py-1 bg-white/5 border border-white/10 rounded-full text-gray-400">
+                            <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
+                            Online
+                        </div>
+                        <button
+                            onClick={onLogout}
+                            className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-gray-400 hover:text-white transition-colors"
+                            title="Cerrar Sesión"
+                        >
+                            <LogOut size={16} />
+                        </button>
                     </div>
                 </div>
 
@@ -118,7 +135,7 @@ export default function Chat({ workflow, setWorkflow }) {
 
                             <div
                                 className={`max-w-[80%] px-5 py-3 text-sm leading-relaxed ${m.role === "user"
-                                    ? "bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 text-white rounded-2xl rounded-tr-sm shadow-[0_8px_30px_rgba(139,92,246,0.35)]"
+                                    ? "bg-gradient-to-br from-[#3657E2] to-[#1CCDEF] text-white rounded-2xl rounded-tr-sm shadow-[0_8px_30px_rgba(54,87,226,0.35)]"
                                     : "bg-white/[0.06] border border-white/10 text-gray-200 rounded-2xl rounded-tl-sm backdrop-blur-md"
                                     }`}
                             >
@@ -126,8 +143,8 @@ export default function Chat({ workflow, setWorkflow }) {
                             </div>
 
                             {m.role === "user" && (
-                                <div className="w-8 h-8 rounded-full bg-indigo-500/20 border border-indigo-400/30 flex items-center justify-center">
-                                    <User size={14} className="text-indigo-300" />
+                                <div className="w-8 h-8 rounded-full bg-[#3657E2]/20 border border-[#3657E2]/30 flex items-center justify-center">
+                                    <User size={14} className="text-[#1CCDEF]" />
                                 </div>
                             )}
                         </div>
@@ -159,13 +176,13 @@ export default function Chat({ workflow, setWorkflow }) {
                             onKeyDown={handleKeyDown}
                             rows={1}
                             placeholder="Ej. Crea un pipeline CI/CD con FastAPI y Docker..."
-                            className="w-full resize-none max-h-32 min-h-[52px] bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500/40"
+                            className="w-full resize-none max-h-32 min-h-[52px] bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#1CCDEF]/40"
                         />
 
                         <button
                             onClick={sendMessage}
                             disabled={!input.trim() || isLoading}
-                            className="absolute right-2 bottom-2 p-2 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white shadow-lg shadow-indigo-900/30 disabled:opacity-50"
+                            className="absolute right-2 bottom-2 p-2 rounded-lg bg-gradient-to-br from-[#3657E2] to-[#1CCDEF] hover:opacity-90 text-white shadow-lg shadow-[#3657E2]/30 disabled:opacity-50"
                         >
                             {isLoading ? (
                                 <Loader2 size={18} className="animate-spin" />
