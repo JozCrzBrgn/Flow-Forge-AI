@@ -4,6 +4,7 @@ from .agent import AiAgentSettings
 from .info import ApiInfoSettings
 from .cors import CorsSettings
 from .security import SecuritySettings
+from .supa import SupaSettings
 
 
 class Settings:
@@ -12,6 +13,7 @@ class Settings:
         self.agent = AiAgentSettings()
         self.cors = CorsSettings()
         self.security = SecuritySettings()
+        self.supa = SupaSettings()
 
 
 @lru_cache

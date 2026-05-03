@@ -6,9 +6,16 @@ from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 
+from supabase import create_client
+
 from core.config import get_settings
 
 cnf = get_settings()
+
+supabase = create_client(
+    cnf.supa.url,
+    cnf.supa.key
+)
 
 # ? Password encryptor - argon2 is the most secure modern standard
 pwd_context = CryptContext(schemes=["argon2", "pbkdf2_sha256"], deprecated="auto")
@@ -56,7 +63,6 @@ def decode_access_token(token: str = Depends(oauth2_scheme)):
         raise credentials_exception
 
 
-# TODO: Simulated users
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify the password against the hash using argon2 or pbkdf2_sha256."""
     return pwd_context.verify(plain_password, hashed_password)
@@ -67,18 +73,43 @@ def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)
 
 
-users_db = {
-    cnf.security.auth_username: {
-        "username": cnf.security.auth_username,
-        "hashed_password": get_password_hash(cnf.security.auth_password),
-    }
-}
+def get_user_by_username(username: str):
+    response = (
+        supabase.table(cnf.supa.users_table)
+        .select("*")
+        .eq("username", username)
+        .limit(1)
+        .execute()
+    )
+
+    if not response.data:
+        return None
+
+    return response.data[0]
 
 
 def authenticate_user(username: str, password: str):
-    user = users_db.get(username)
+    user = get_user_by_username(username)
+
     if not user:
         return False
+
     if not verify_password(password, user["hashed_password"]):
         return False
+
     return user
+
+
+def create_user(username: str, password: str):
+    hashed_password = get_password_hash(password)
+
+    response = (
+        supabase.table(cnf.supa.users_table)
+        .insert({
+            "username": username,
+            "hashed_password": hashed_password
+        })
+        .execute()
+    )
+
+    return response.data[0]
