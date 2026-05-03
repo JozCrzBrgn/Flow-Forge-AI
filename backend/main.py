@@ -1,128 +1,71 @@
-from pydantic import Field
+from core.config import get_settings
+
 from fastapi import FastAPI
-from pydantic import BaseModel
-from typing import List, Optional
-import json
-import os
-import uuid
-from openai import OpenAI
+
+
 from fastapi.middleware.cors import CORSMiddleware
-from dotenv import load_dotenv
 
-load_dotenv()
+from routers import health, info, flow_forge
+from middleware.rate_limiter import limiter
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
+from fastapi.responses import JSONResponse
+from fastapi import Request
 
-app = FastAPI()
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+cnf = get_settings()
+
+
+# FastAPI Initialization
+app = FastAPI(
+    title=cnf.info.name,
+    description=cnf.info.description,
+    version=cnf.info.version,
+    contact={
+        "name": cnf.info.contact_name,
+        "email": cnf.info.contact_email,
+        "url": cnf.info.contact_url,
+    },
+    license_info={"name": cnf.info.license, "url": cnf.info.license_url},
+    openapi_tags=[
+        {"name": "Authentication", "description": "Authentication and JWT tokens"},
+        {"name": "Information", "description": "Basic API Information"},
+        {
+            "name": "Flow Forge AI",
+            "description": "API to automatically create workflows using natural language.",
+        },
+    ],
 )
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+# Configure rate limiter
+app.state.limiter = limiter
 
-# ===== MODELS =====
+app.add_middleware(SlowAPIMiddleware)
 
-
-class Node(BaseModel):
-    id: str
-    type: str
-    text: str
-
-
-class Edge(BaseModel):
-    from_: str = Field(alias="from")
-    to: str
-    condition: Optional[str] = None
-
-    class Config:
-        populate_by_name = True
+# Configurar CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=cnf.cors.cors_allow_origins,
+    allow_methods=cnf.cors.cors_allow_methods,
+    allow_headers=cnf.cors.cors_allow_headers,
+)
 
 
-class Workflow(BaseModel):
-    nodes: List[Node]
-    edges: List[Edge]
-
-
-class ChatRequest(BaseModel):
-    message: str
-    workflow: Optional[dict] = None
-
-
-# ===== PROMPT =====
-
-SYSTEM_PROMPT = """
-You are a workflow builder AI.
-
-You create and update workflow diagrams using JSON.
-
-Structure:
-{
-    "nodes": [{"id": "...", "type": "step|decision", "text": "..."}],
-    "edges": [{"from": "...", "to": "...", "condition": "..."}]
-}
-
-Rules:
-- Node IDs must remain stable across generations.
-- If a node is modified, keep its ID.
-- If a node is deleted, remove it from edges.
-
-Edges MUST use keys:
-- "from"
-- "to"
-- "condition"
-
-- Only return valid JSON
-- Do not explain anything
-- Maintain existing nodes unless user modifies
-- Support create, update, delete
-- Decisions must branch (yes/no)
-- Keep IDs stable
-"""
-
-
-def build_prompt(current, message):
-    return f"""
-Current workflow:
-{json.dumps(current)}
-
-User request:
-{message}
-
-Return ONLY JSON
-"""
-
-
-# ===== ENDPOINT =====
-
-
-@app.post("/chat")
-def chat(req: ChatRequest):
-    current = req.workflow or {"nodes": [], "edges": []}
-
-    response = client.chat.completions.create(
-        model="gpt-4.1-mini",
-        messages=[
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": build_prompt(current, req.message)},
-        ],
-        temperature=0,
+# Custom handler for rate limiting
+@app.exception_handler(RateLimitExceeded)
+async def custom_rate_limit_handler(request: Request, exc: RateLimitExceeded):
+    return JSONResponse(
+        status_code=429,
+        content={
+            "detail": "Request limit exceeded. Please try again later.",
+            "path": str(request.url),
+        },
+        headers={"Retry-After": "60"},
     )
 
-    content = response.choices[0].message.content
 
-    try:
-        parsed = json.loads(content)
-
-        for node in parsed["nodes"]:
-            if "id" not in node:
-                node["id"] = str(uuid.uuid4())
-
-        Workflow(**parsed)
-
-        return {"workflow": parsed}
-
-    except Exception as e:
-        return {"error": str(e), "raw": content}
+# Include routers
+app.include_router(health.router, tags=["Information"])
+app.include_router(info.router, tags=["Information"])
+app.include_router(flow_forge.router, tags=["Flow Forge AI"], prefix="/v1")
+# app.include_router(auth.router, tags=["Authentication"])
