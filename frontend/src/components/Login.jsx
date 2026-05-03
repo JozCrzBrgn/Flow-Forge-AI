@@ -63,7 +63,7 @@ export default function Login({ onLogin }) {
                                 value={username}
                                 onChange={(e) => setUsername(e.target.value)}
                                 className="w-full bg-black/40 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm text-gray-100 placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-[#1CCDEF]/40 transition-all"
-                                placeholder="tu-usuario"
+                                placeholder="your username"
                                 required
                             />
                         </div>
