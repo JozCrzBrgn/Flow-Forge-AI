@@ -42,7 +42,7 @@ export default function Chat({ workflow, setWorkflow, token, onLogout }) {
                     {
                         role: "assistant",
                         content:
-                            "✨ Workflow actualizado exitosamente basado en tus requerimientos.",
+                            "✨ Workflow successfully updated based on your requirements.",
                     },
                 ]);
             }
@@ -54,7 +54,7 @@ export default function Chat({ workflow, setWorkflow, token, onLogout }) {
                     ...prev,
                     {
                         role: "assistant",
-                        content: "❌ Error de conexión. Intenta nuevamente.",
+                        content: "❌ Connection error. Please try again.",
                     },
                 ]);
             }
@@ -90,7 +90,7 @@ export default function Chat({ workflow, setWorkflow, token, onLogout }) {
                                 FlowForge AI
                             </h3>
                             <p className="text-xs text-gray-400">
-                                Automatización inteligente de workflows
+                                Intelligent workflow automation
                             </p>
                         </div>
                     </div>
@@ -117,7 +117,7 @@ export default function Chat({ workflow, setWorkflow, token, onLogout }) {
                         <div className="h-full flex flex-col items-center justify-center text-gray-500 space-y-4 opacity-70">
                             <Bot size={42} />
                             <p className="text-sm">
-                                Describe el workflow que quieres automatizar...
+                                Describe the workflow you want to automate...
                             </p>
                         </div>
                     )}
@@ -159,7 +159,7 @@ export default function Chat({ workflow, setWorkflow, token, onLogout }) {
                             </div>
                             <div className="bg-white/[0.06] border border-white/10 text-gray-400 rounded-2xl px-5 py-3 flex items-center gap-2">
                                 <Loader2 size={14} className="animate-spin" />
-                                Analizando workflow con IA...
+                                Analyzing workflow with AI...
                             </div>
                         </div>
                     )}
@@ -176,7 +176,7 @@ export default function Chat({ workflow, setWorkflow, token, onLogout }) {
                             onChange={(e) => setInput(e.target.value)}
                             onKeyDown={handleKeyDown}
                             rows={1}
-                            placeholder="Ej. Crea un pipeline CI/CD con FastAPI y Docker..."
+                            placeholder="Example: Create a CI/CD pipeline with FastAPI and Docker..."
                             className="w-full resize-none max-h-32 min-h-[52px] bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#1CCDEF]/40"
                         />
 
@@ -194,7 +194,7 @@ export default function Chat({ workflow, setWorkflow, token, onLogout }) {
                     </div>
 
                     <div className="text-center mt-2 text-[10px] text-gray-600">
-                        Enter para enviar · Shift + Enter para nueva línea
+                        Enter to send · Shift + Enter for new line
                     </div>
                 </div>
             </div>

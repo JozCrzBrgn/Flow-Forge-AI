@@ -29,7 +29,7 @@ export default function Login({ onLogin }) {
                 onLogin(res.data.access_token);
             }
         } catch (err) {
-            setError("Usuario o contraseña incorrectos");
+            setError("Invalid username or password");
         } finally {
             setIsLoading(false);
         }
@@ -48,12 +48,12 @@ export default function Login({ onLogin }) {
                     </div>
                 </div>
 
-                <h2 className="text-2xl font-bold text-center text-white mb-2 tracking-wide">Bienvenido a FlowForge</h2>
-                <p className="text-gray-400 text-center mb-8 text-sm">Ingresa tus credenciales para continuar</p>
+                <h2 className="text-2xl font-bold text-center text-white mb-2 tracking-wide">Welcome to FlowForge</h2>
+                <p className="text-gray-400 text-center mb-8 text-sm">Enter your credentials to continue</p>
 
                 <form onSubmit={handleSubmit} className="space-y-5">
                     <div className="space-y-1">
-                        <label className="text-xs text-gray-400 ml-1">Usuario</label>
+                        <label className="text-xs text-gray-400 ml-1">Username</label>
                         <div className="relative">
                             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-500">
                                 <UserIcon size={18} />
@@ -70,7 +70,7 @@ export default function Login({ onLogin }) {
                     </div>
 
                     <div className="space-y-1">
-                        <label className="text-xs text-gray-400 ml-1">Contraseña</label>
+                        <label className="text-xs text-gray-400 ml-1">Password</label>
                         <div className="relative">
                             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-500">
                                 <Lock size={18} />
@@ -100,10 +100,10 @@ export default function Login({ onLogin }) {
                         {isLoading ? (
                             <>
                                 <Loader2 size={18} className="animate-spin" />
-                                <span>Verificando...</span>
+                                <span>Verifying...</span>
                             </>
                         ) : (
-                            <span>Iniciar Sesión</span>
+                            <span>Log In</span>
                         )}
                     </button>
                 </form>
