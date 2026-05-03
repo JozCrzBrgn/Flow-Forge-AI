@@ -33,6 +33,7 @@ export default function App() {
   const handleLogin = (newToken, newUsername) => {
     setToken(newToken);
     setUsername(newUsername);
+    setWorkflow({ nodes: [], edges: [] });
   };
 
   if (!token) {
