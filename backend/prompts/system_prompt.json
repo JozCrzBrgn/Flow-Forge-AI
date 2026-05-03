@@ -1,0 +1,6 @@
+{
+    "name": "Flow Forge AI",
+    "version": "1.0.0",
+    "description": "AI Agent for creating and editing workflow diagrams using JSON",
+    "content_path": "prompts/workflow_prompt.txt"
+}
