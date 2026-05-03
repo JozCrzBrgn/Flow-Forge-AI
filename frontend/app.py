@@ -1,7 +1,11 @@
 import flet as ft
 import requests
+from dotenv import load_dotenv
+import os
 
-API_URL = "http://localhost:8000/chat"
+load_dotenv()
+
+API_URL = os.getenv("API_URL")
 
 workflow = {"nodes": [], "edges": []}
 
