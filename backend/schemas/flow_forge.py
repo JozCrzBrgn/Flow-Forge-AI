@@ -25,3 +25,10 @@ class Workflow(BaseModel):
 class ChatRequest(BaseModel):
     message: str
     workflow: Optional[dict] = None
+    workflow_id: Optional[str] = None
+    name: Optional[str] = None
+
+
+class WorkflowUpdateRequest(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
