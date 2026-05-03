@@ -18,7 +18,7 @@ export default function Login({ onLogin }) {
             formData.append("username", username);
             formData.append("password", password);
 
-            const API_URL = import.meta.env.VITE_API_URL || "https://noble-vibrancy-production-25bb.up.railway.app/";
+            const API_URL = import.meta.env.VITE_API_URL || "https://noble-vibrancy-production-25bb.up.railway.app";
             const res = await axios.post(`${API_URL}/token`, formData, {
                 headers: {
                     "Content-Type": "application/x-www-form-urlencoded",
