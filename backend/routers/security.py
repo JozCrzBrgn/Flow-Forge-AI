@@ -1,12 +1,14 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.security import OAuth2PasswordRequestForm
 
 from schemas.security import TokenResponse
 from services.security import authenticate_user, create_access_token, create_user, decode_access_token
 
 router = APIRouter()
+
+from middleware.rate_limiter import limiter
 
 
 @router.post(
@@ -26,7 +28,8 @@ router = APIRouter()
         }
     },
 )
-async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
+@limiter.limit("5/minute")
+async def login(request: Request, form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
     user = authenticate_user(form_data.username, form_data.password)
     if not user:
         raise HTTPException(
