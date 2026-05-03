@@ -5,7 +5,7 @@ from fastapi import FastAPI
 
 from fastapi.middleware.cors import CORSMiddleware
 
-from routers import health, info, flow_forge
+from routers import health, info, flow_forge, security
 from middleware.rate_limiter import limiter
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
@@ -67,5 +67,5 @@ async def custom_rate_limit_handler(request: Request, exc: RateLimitExceeded):
 # Include routers
 app.include_router(health.router, tags=["Information"])
 app.include_router(info.router, tags=["Information"])
-app.include_router(flow_forge.router, tags=["Flow Forge AI"], prefix="/v1")
-# app.include_router(auth.router, tags=["Authentication"])
+app.include_router(flow_forge.router, tags=["Flow Forge AI"], prefix="/v2")
+app.include_router(security.router, tags=["Authentication"])
