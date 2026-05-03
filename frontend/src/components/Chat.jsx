@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import axios from "axios";
 import { Send, Bot, User, Loader2, Zap, LogOut } from "lucide-react";
 
-export default function Chat({ workflow, setWorkflow, token, onLogout }) {
+export default function Chat({ workflow, setWorkflow, token, username, onLogout, onGoRegister }) {
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState("");
     const [isLoading, setIsLoading] = useState(false);
@@ -100,6 +100,15 @@ export default function Chat({ workflow, setWorkflow, token, onLogout }) {
                             <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
                             Online
                         </div>
+                        {username === "admin" && (
+                            <button
+                                onClick={onGoRegister}
+                                className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-gray-400 hover:text-[#1CCDEF] transition-colors"
+                                title="Register New User"
+                            >
+                                <User size={16} />
+                            </button>
+                        )}
                         <button
                             onClick={onLogout}
                             className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-gray-400 hover:text-white transition-colors"
