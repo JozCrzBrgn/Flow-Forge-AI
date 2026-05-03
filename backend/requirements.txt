@@ -4,3 +4,6 @@ openai
 pydantic
 pydantic-settings
 python-dotenv
+slowapi
+passlib[argon2]
+python-multipart
