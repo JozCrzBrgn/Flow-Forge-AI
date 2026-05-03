@@ -9,3 +9,5 @@ class SupaSettings(BaseSettings):
     url: str
     key: str
     users_table: str
+    wf_table: str
+    wv_table: str
