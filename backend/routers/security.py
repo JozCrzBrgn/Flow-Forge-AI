@@ -2,13 +2,18 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.security import OAuth2PasswordRequestForm
-
+from middleware.rate_limiter import limiter
 from schemas.security import TokenResponse
-from services.security import authenticate_user, create_access_token, create_user, decode_access_token
+from services.security import (
+    authenticate_user,
+    create_access_token,
+    create_user,
+    decode_access_token,
+)
 
 router = APIRouter()
 
-from middleware.rate_limiter import limiter
+
 
 
 @router.post(

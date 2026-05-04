@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
-from supabase import create_client
+
 from core.config import get_settings
+from supabase import create_client
 
 cnf = get_settings()
 

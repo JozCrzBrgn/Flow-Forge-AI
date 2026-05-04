@@ -1,8 +1,8 @@
 from functools import lru_cache
 
 from .agent import AiAgentSettings
-from .info import ApiInfoSettings
 from .cors import CorsSettings
+from .info import ApiInfoSettings
 from .security import SecuritySettings
 from .supa import SupaSettings
 

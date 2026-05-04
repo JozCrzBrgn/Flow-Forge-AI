@@ -1,6 +1,5 @@
-from fastapi import APIRouter, Request
-
 from core.config import get_settings
+from fastapi import APIRouter, Request
 from middleware.rate_limiter import limiter
 from schemas.info import InfoResponse
 

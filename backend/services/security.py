@@ -1,14 +1,12 @@
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
+from core.config import get_settings
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from passlib.context import CryptContext
-
 from supabase import create_client
-
-from core.config import get_settings
 
 cnf = get_settings()
 
