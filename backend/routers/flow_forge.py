@@ -57,8 +57,14 @@ def chat(
         # Get the next version number
         next_version = supa_service.get_next_version_number(workflow_id)
 
-        # Insert the new version
-        v_res = supa_service.create_workflow_version(workflow_id, next_version, cleaned)
+        # Insert the new version (with conversation if provided)
+        conversation_payload = None
+        if payload.conversation is not None:
+            conversation_payload = [m.model_dump() for m in payload.conversation]
+
+        v_res = supa_service.create_workflow_version(
+            workflow_id, next_version, cleaned, conversation_payload
+        )
         version_id = v_res["id"]
 
         # Update the latest version
@@ -126,6 +132,7 @@ def get_workflow(
             "description": wf.get("description", ""),
             "version_number": version_number,
             "workflow": version,
+            "conversation": v_data.get("conversation") if v_data else None,
         }
 
     except HTTPException:
@@ -167,6 +174,29 @@ def update_workflow(
             "name": updated["name"],
             "description": updated.get("description", ""),
         }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.delete(
+    "/workflows/{workflow_id}",
+    summary="Delete a workflow",
+    description="Soft-deletes a workflow and all its versions (sets deleted_at). Only the owner can delete.",
+    tags=["Flow Forge AI"],
+)
+def delete_workflow(
+    workflow_id: str,
+    request: Request,
+    user=Depends(get_current_user),
+):
+    try:
+        deleted = supa_service.soft_delete_workflow(workflow_id, user["sub"])
+        if not deleted:
+            raise HTTPException(status_code=404, detail="Workflow not found or already deleted.")
+        return {"detail": "Workflow deleted.", "workflow_id": workflow_id}
 
     except HTTPException:
         raise

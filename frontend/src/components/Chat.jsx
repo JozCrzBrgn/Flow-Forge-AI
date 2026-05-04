@@ -3,7 +3,7 @@ import axios from "axios";
 import {
     Send, Bot, User, Loader2, Zap, LogOut,
     GitBranch, Pencil, Check, Plus, FolderOpen,
-    ChevronRight, Clock, X, AlignLeft
+    ChevronRight, Clock, X, AlignLeft, Trash2
 } from "lucide-react";
 
 const API_URL = import.meta.env.VITE_API_URL || "https://noble-vibrancy-production-25bb.up.railway.app";
@@ -76,6 +76,8 @@ function WorkflowSelector({ token, onSelect, onNew }) {
     const [workflows, setWorkflows] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [deletingId, setDeletingId] = useState(null);
+    const [confirmId, setConfirmId] = useState(null);
 
     useEffect(() => {
         axios
@@ -84,6 +86,26 @@ function WorkflowSelector({ token, onSelect, onNew }) {
             .catch(() => setError("Could not load workflows."))
             .finally(() => setLoading(false));
     }, [token]);
+
+    const handleDeleteClick = (e, wfId) => {
+        e.stopPropagation();
+        setConfirmId(wfId);
+    };
+
+    const handleDeleteConfirm = async (wfId) => {
+        setDeletingId(wfId);
+        setConfirmId(null);
+        try {
+            await axios.delete(`${API_URL}/v2/workflows/${wfId}`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            setWorkflows((prev) => prev.filter((w) => w.id !== wfId));
+        } catch {
+            setError("Could not delete the workflow. Please try again.");
+        } finally {
+            setDeletingId(null);
+        }
+    };
 
     const fmt = (iso) => {
         if (!iso) return "";
@@ -120,27 +142,63 @@ function WorkflowSelector({ token, onSelect, onNew }) {
                     </div>
                 )}
                 {workflows.map((wf) => (
-                    <button
-                        key={wf.id}
-                        onClick={() => onSelect(wf)}
-                        className="w-full flex items-center justify-between px-5 py-4 rounded-xl bg-white/[0.03] hover:bg-white/[0.07] border border-white/[0.07] hover:border-white/20 transition-all group text-left"
-                    >
-                        <div className="flex items-center gap-3 min-w-0">
-                            <div className="p-2 rounded-lg bg-[#3657E2]/10 group-hover:bg-[#3657E2]/20 transition-colors shrink-0">
-                                <FolderOpen size={14} className="text-[#1CCDEF]" />
+                    <div key={wf.id} className="relative group/row">
+                        {/* Inline confirm overlay */}
+                        {confirmId === wf.id && (
+                            <div className="absolute inset-0 z-10 flex items-center justify-center gap-3 rounded-xl bg-black/75 backdrop-blur-sm border border-red-500/30 px-4">
+                                <span className="text-white text-xs font-medium truncate max-w-[160px]">Delete "{wf.name}"?</span>
+                                <button
+                                    id={`confirm-delete-${wf.id}`}
+                                    onClick={() => handleDeleteConfirm(wf.id)}
+                                    className="px-3 py-1 rounded-lg text-xs font-semibold bg-red-500 hover:bg-red-600 text-white transition-colors shrink-0"
+                                >
+                                    Yes, delete
+                                </button>
+                                <button
+                                    onClick={() => setConfirmId(null)}
+                                    className="px-3 py-1 rounded-lg text-xs font-semibold bg-white/10 hover:bg-white/20 text-gray-300 transition-colors shrink-0"
+                                >
+                                    Cancel
+                                </button>
                             </div>
-                            <div className="min-w-0">
-                                <p className="text-white text-sm font-medium truncate">{wf.name}</p>
-                                {wf.description && (
-                                    <p className="text-gray-500 text-xs truncate mt-0.5 max-w-xs">{wf.description}</p>
-                                )}
-                                <p className="text-gray-600 text-xs flex items-center gap-1 mt-0.5">
-                                    <Clock size={10} /> {fmt(wf.updated_at)}
-                                </p>
+                        )}
+
+                        <button
+                            onClick={() => confirmId !== wf.id && onSelect(wf)}
+                            disabled={deletingId === wf.id}
+                            className="w-full flex items-center justify-between px-5 py-4 rounded-xl bg-white/[0.03] hover:bg-white/[0.07] border border-white/[0.07] hover:border-white/20 transition-all group text-left disabled:opacity-50"
+                        >
+                            <div className="flex items-center gap-3 min-w-0">
+                                <div className="p-2 rounded-lg bg-[#3657E2]/10 group-hover:bg-[#3657E2]/20 transition-colors shrink-0">
+                                    {deletingId === wf.id
+                                        ? <Loader2 size={14} className="text-[#1CCDEF] animate-spin" />
+                                        : <FolderOpen size={14} className="text-[#1CCDEF]" />
+                                    }
+                                </div>
+                                <div className="min-w-0">
+                                    <p className="text-white text-sm font-medium truncate">{wf.name}</p>
+                                    {wf.description && (
+                                        <p className="text-gray-500 text-xs truncate mt-0.5 max-w-xs">{wf.description}</p>
+                                    )}
+                                    <p className="text-gray-600 text-xs flex items-center gap-1 mt-0.5">
+                                        <Clock size={10} /> {fmt(wf.updated_at)}
+                                    </p>
+                                </div>
                             </div>
-                        </div>
-                        <ChevronRight size={14} className="text-gray-600 group-hover:text-[#1CCDEF] shrink-0 transition-colors" />
-                    </button>
+                            <div className="flex items-center gap-2 shrink-0">
+                                <button
+                                    id={`delete-wf-${wf.id}`}
+                                    onClick={(e) => handleDeleteClick(e, wf.id)}
+                                    disabled={deletingId === wf.id}
+                                    className="p-1.5 rounded-lg text-gray-600 hover:text-red-400 hover:bg-red-500/10 transition-colors opacity-0 group-hover/row:opacity-100 disabled:pointer-events-none"
+                                    title="Delete workflow"
+                                >
+                                    <Trash2 size={13} />
+                                </button>
+                                <ChevronRight size={14} className="text-gray-600 group-hover:text-[#1CCDEF] transition-colors" />
+                            </div>
+                        </button>
+                    </div>
                 ))}
             </div>
         </div>
@@ -152,9 +210,10 @@ function ChatScreen({
     token, username, onLogout, onGoRegister,
     workflow, setWorkflow,
     initialWorkflowId, initialWorkflowName, initialVersionNumber, initialDescription,
+    initialMessages,
     onBack,
 }) {
-    const [messages, setMessages] = useState([]);
+    const [messages, setMessages] = useState(Array.isArray(initialMessages) ? initialMessages : []);
     const [input, setInput] = useState("");
     const [isLoading, setIsLoading] = useState(false);
 
@@ -194,16 +253,24 @@ function ChatScreen({
     const sendMessage = async () => {
         if (!input.trim()) return;
         const userMsg = input.trim();
-        setMessages((prev) => [...prev, { role: "user", content: userMsg }]);
+        const ts = new Date().toISOString();
+        const newUserMsg = { role: "user", content: userMsg, timestamp: ts };
+
+        // Optimistically add user message
+        setMessages((prev) => [...prev, newUserMsg]);
         setInput("");
         setIsLoading(true);
 
         try {
+            // Include full conversation (with new message) for persistence
+            const updatedHistory = [...messages, newUserMsg];
+
             const body = {
                 message: userMsg,
                 workflow: workflow,
                 name: workflowName,
                 ...(workflowId && { workflow_id: workflowId }),
+                conversation: updatedHistory,
             };
 
             const res = await axios.post(`${API_URL}/v2/chat`, body, {
@@ -215,14 +282,27 @@ function ChatScreen({
                 if (res.data.workflow_id) setWorkflowId(res.data.workflow_id);
                 if (res.data.version_number != null) setVersionNumber(res.data.version_number);
 
-                setMessages((prev) => [
-                    ...prev,
-                    { role: "assistant", content: `✨ Workflow updated — version ${res.data.version_number ?? "?"}.` },
-                ]);
+                const assistantMsg = {
+                    role: "assistant",
+                    content: `✨ Workflow updated — version ${res.data.version_number ?? "?"}.`,
+                    timestamp: new Date().toISOString(),
+                };
+                setMessages((prev) => [...prev, assistantMsg]);
             }
         } catch (err) {
-            if (err.response?.status === 401) onLogout();
-            else setMessages((prev) => [...prev, { role: "assistant", content: "❌ Connection error. Please try again." }]);
+            if (err.response?.status === 401) {
+                onLogout();
+            } else {
+                const detail = err.response?.data?.detail || err.message || "Connection error";
+                setMessages((prev) => [
+                    ...prev,
+                    { 
+                        role: "assistant", 
+                        content: `❌ Error: ${detail}. Please try again.`, 
+                        timestamp: new Date().toISOString() 
+                    }
+                ]);
+            }
         } finally {
             setIsLoading(false);
         }
@@ -384,14 +464,17 @@ export default function Chat({ workflow, setWorkflow, token, username, onLogout,
             });
             const data = res.data;
             if (data.workflow) setWorkflow(data.workflow);
+            // Restore persisted conversation; old rows may not have it (null/undefined)
+            const restoredMessages = Array.isArray(data.conversation) ? data.conversation : [];
             setActiveWorkflow({
                 id: data.workflow_id,
                 name: data.name,
                 description: data.description ?? "",
                 versionNumber: data.version_number,
+                messages: restoredMessages,
             });
         } catch {
-            setActiveWorkflow({ id: wf.id, name: wf.name, description: wf.description ?? "", versionNumber: null });
+            setActiveWorkflow({ id: wf.id, name: wf.name, description: wf.description ?? "", versionNumber: null, messages: [] });
         }
         setScreen("chat");
     }, [token, setWorkflow]);
@@ -447,6 +530,7 @@ export default function Chat({ workflow, setWorkflow, token, username, onLogout,
                         initialWorkflowName={activeWorkflow?.name ?? "Untitled Workflow"}
                         initialVersionNumber={activeWorkflow?.versionNumber ?? null}
                         initialDescription={activeWorkflow?.description ?? ""}
+                        initialMessages={activeWorkflow?.messages ?? []}
                         onBack={() => setScreen("selector")}
                     />
                 )}

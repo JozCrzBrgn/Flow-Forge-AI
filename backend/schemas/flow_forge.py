@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Any, List, Optional
 
 from pydantic import BaseModel, Field
 
@@ -23,11 +23,19 @@ class Workflow(BaseModel):
     edges: List[Edge]
 
 
+class ConversationMessage(BaseModel):
+    """A single turn in the chat conversation to be persisted."""
+    role: str  # 'user' | 'assistant'
+    content: str
+    timestamp: Optional[str] = None  # ISO-8601 string, optional
+
+
 class ChatRequest(BaseModel):
     message: str
     workflow: Optional[dict] = None
     workflow_id: Optional[str] = None
     name: Optional[str] = None
+    conversation: Optional[List[ConversationMessage]] = None  # full history to persist
 
 
 class WorkflowUpdateRequest(BaseModel):
